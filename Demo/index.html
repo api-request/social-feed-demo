@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Feed</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+      background: #f0f2f5;
+      color: #1c1e21;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #ddd;
+      background: #f0f2f5;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: #0070f3;
+    }
+    #user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+    #user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    #logout-btn {
+      font-size: 13px;
+      color: #666;
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #logout-btn:hover { background: #eee; }
+
+    /* ── Auth card ── */
+    #auth-section {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #eee;
+    }
+    .auth-tab {
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      font-family: inherit;
+    }
+    .auth-tab.active {
+      color: #0070f3;
+      border-bottom-color: #0070f3;
+    }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+
+    /* ── Create post ── */
+    #create-form {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    #create-form h2 {
+      margin: 0 0 16px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* ── Inputs ── */
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fafafa;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #0070f3;
+      background: white;
+    }
+    textarea { resize: vertical; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      cursor: pointer;
+      padding: 10px 20px;
+      background: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      width: 100%;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #005dd1; }
+    .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+
+    /* ── Posts ── */
+    #status {
+      color: #888;
+      font-size: 13px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .post {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .post > img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      max-height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+    .post h3 { margin: 0 0 6px; font-size: 16px; }
+    .post p  { margin: 0 0 10px; color: #555; font-size: 14px; line-height: 1.5; }
+    .post-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+    .post-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #777;
+    }
+    .post-author img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .like-btn {
+      cursor: pointer;
+      padding: 6px 14px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      background: white;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .like-btn:hover { background: #fff0f0; border-color: #ffb3b3; }
+
+    /* ── Utility ── */
+    .error-msg {
+      color: #e53e3e;
+      font-size: 13px;
+      margin-top: -4px;
+      margin-bottom: 10px;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Social Feed</h1>
+    <div id="user-info" class="hidden">
+      <img id="user-avatar" src="https://i.pravatar.cc/150" alt="avatar" />
+      <span id="username-display"></span>
+      <button id="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- Auth -->
+  <div id="auth-section">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Log In</button>
+      <button class="auth-tab" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <div id="login-form" class="auth-form active">
+      <input id="login-email" placeholder="Email" />
+      <input type="password" id="login-password" placeholder="Password" />
+      <p class="error-msg hidden" id="login-error"></p>
+      <button class="btn-primary" onclick="login()">Log In</button>
+    </div>
+
+    <div id="register-form" class="auth-form">
+      <input type="text" id="reg-username" placeholder="Username" />
+      <input type="email" id="reg-email" placeholder="Email" />
+      <input type="password" id="reg-password" placeholder="Password" />
+      <p class="error-msg hidden" id="register-error"></p>
+      <button class="btn-primary" onclick="registerUser()">Create Account</button>
+    </div>
+  </div>
+
+  <!-- Create post (visible only when logged in) -->
+  <div id="create-form" class="hidden">
+    <h2>Create a Post</h2>
+    <input type="text" id="post-title" placeholder="Title" />
+    <textarea id="post-description" placeholder="What's on your mind?" rows="3"></textarea>
+    <input type="text" id="post-image" placeholder="Image URL (optional)" />
+    <button class="btn-primary" onclick="createPost()">Post</button>
+  </div>
+
+  <p id="status">Loading...</p>
+  <div id="posts-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
